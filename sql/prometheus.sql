@@ -231,7 +231,7 @@ BEGIN
         EXECUTE format(
             $$
             CREATE TABLE %I (
-                  id SERIAL PRIMARY KEY,
+                  id SERIAL,
                   metric_name TEXT NOT NULL,
                   labels jsonb,
                   UNIQUE(metric_name, labels)
@@ -274,7 +274,7 @@ BEGIN
         ELSE
           EXECUTE format(
               $$
-              CREATE TABLE %I (time TIMESTAMPTZ, value FLOAT8, labels_id INTEGER REFERENCES %I(id))
+              CREATE TABLE %I (time TIMESTAMPTZ, value FLOAT8, labels_id INTEGER)
               $$,
               metrics_values_table_name,
               metrics_labels_table_name
@@ -309,15 +309,15 @@ BEGIN
             metrics_labels_table_name
         );
 
-        EXECUTE format(
-            $$
-            CREATE TRIGGER insert_trigger INSTEAD OF INSERT ON %I
-            FOR EACH ROW EXECUTE PROCEDURE prometheus.insert_view_normal(%L, %L)
-            $$,
-            metrics_view_name,
-            metrics_values_table_name,
-            metrics_labels_table_name
-        );
+       EXECUTE format(
+           $$
+           CREATE TRIGGER insert_trigger INSTEAD OF INSERT ON %I
+           FOR EACH ROW EXECUTE PROCEDURE prometheus.insert_view_normal(%L, %L)
+           $$,
+           metrics_view_name,
+           metrics_values_table_name,
+           metrics_labels_table_name
+       );
 
         EXECUTE format(
             $$
